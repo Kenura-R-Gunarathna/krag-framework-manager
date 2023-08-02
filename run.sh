@@ -6,7 +6,7 @@ source ./includes/functions.sh
 echo -e "
 ${BLUE}--------------------------------------------
 ${BLUE}            KRAG Site Creator
-${GREBLUEEN}--------------------------------------------{$NC}
+${GREBLUEEN}--------------------------------------------${NC}
 "
 
 read -p "Site Name (With the domain): " sitename
@@ -57,13 +57,22 @@ case $selected_choice in
 esac
 
 sudo echo -e "
+define ROOT "/var/www/$sitename/$output_folder"
+define SITE "$sitename"
+
 <VirtualHost *:80>
-    ServerAdmin webmaster@kenuragunarathna@gmail.com
-    DocumentRoot "/var/www/$sitename/$output_folder"
-    ServerName $sitename
-    ServerAlias www.$sitename
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    DocumentRoot \"\${ROOT}\"
+
+    ServerName \${SITE}
+    ServerAlias *.\${SITE}
+
+    <Directory \"\${ROOT}\">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>" > /etc/apache2/sites-available/$sitename.conf
 
 sudo a2ensite $sitename
@@ -74,4 +83,4 @@ sudo echo "127.0.0.1	$sitename" >> /etc/hosts
 
 sudo systemctl reload apache2
 
-sudo chown -R www-data:www-data /var/www/$sitename/*
+sudo chmod -R ugo+rw /var/www/$sitename/
